@@ -32,6 +32,10 @@ app.get('/', (req, res) => {
   res.send("server is running");
 });
 
+app.get('/api/v1/test', (req, res) => {
+  res.send("test");
+});
+
 app.listen(PORT, () => {
   connectDB();
   console.log(`Server is running on port ${PORT}`);
