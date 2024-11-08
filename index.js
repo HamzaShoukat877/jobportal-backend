@@ -17,8 +17,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(cors());
-
+const allowedOrigins = ['http://localhost:5173', 'https://octopus-app-crtmn.ondigitalocean.app'];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests from allowedOrigins only
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // Allows cookies to be sent
+}));
 
 const PORT = process.env.PORT || 8080;
 
