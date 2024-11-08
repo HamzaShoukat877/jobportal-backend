@@ -17,12 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-const corsOptions = {
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 
 const PORT = process.env.PORT || 8080;
