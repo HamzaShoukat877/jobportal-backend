@@ -9,9 +9,11 @@ export const register = async (req, res) => {
         const { fullname, email, password, role, phoneNumber } = req.body
 
         const file = req.file;
-        const fileUri = getDataUri(file);
-
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        let cloudResponse;
+        if (file) {
+            const fileUri = getDataUri(file);
+            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        }
 
         if ([fullname, email, role, password, phoneNumber].some((field) => field?.trim() === "")) {
             return res.status(400).json({
@@ -38,7 +40,7 @@ export const register = async (req, res) => {
             role,
             phoneNumber,
             profile: {
-                proflilePhoto: cloudResponse.secure_url
+                proflilePhoto: cloudResponse?.secure_url || ""
             }
         });
 
