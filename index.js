@@ -20,7 +20,6 @@ app.use(cookieParser());
 const allowedOrigins = ['http://localhost:5173', 'https://octopus-app-crtmn.ondigitalocean.app'];
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests from allowedOrigins only
     if (allowedOrigins.includes(origin) || !origin) {
       callback(null, true);
     } else {
