@@ -8,6 +8,8 @@ export const register = async (req, res) => {
     try {
         const { fullname, email, password, role, phoneNumber } = req.body
 
+        console.log(req.body);
+
         const file = req.file;
         const fileUri = getDataUri(file);
 
