@@ -10,12 +10,12 @@ const isAuthenticated = (req, res, next) => {
             return res.status(401).json({ message: "Unauthorized", success: false });
         }
 
-        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         if (!decoded) {
             return res.status(401).json({ message: "Invalid token", success: false });
         }
 
-        req.id = decoded.userId;
+        req.id = decoded._id;
         next();
     } catch (error) {
         console.error("Authentication error:", error);

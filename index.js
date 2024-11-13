@@ -13,10 +13,7 @@ dotenv.config({ path: "./.env" });
 // Load environment variables
 dotenv.config({ path: './.env' });
 
-// Validate required environment variables
-if (!process.env.SECRET_KEY) {
-  throw new Error('SECRET_KEY is not set in .env file');
-}
+
 
 const app = express();
 
@@ -26,17 +23,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-const allowedOrigins = ['http://localhost:5173', 'https://octopus-app-crtmn.ondigitalocean.app'];
 app.use(cors({
-  origin(origin, callback) {
-    if (allowedOrigins.includes(origin) || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true // Allows cookies to be sent
-}));
+  origin: ["http://localhost:5173"],
+  credentials: true
+}))
 
 // Routes
 app.use('/api/v1/user', userRoutes);

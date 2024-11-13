@@ -4,6 +4,23 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utlils/datauri.js";
 import cloudinary from "../utlils/cloudinary.js";
 
+const genrateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        console.log(user.generateAccessToken())
+        const accessToke = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        // Save refresh token in the database
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToke, refreshToken }
+    } catch (error) {
+        throw new Error("Something went wrong while generating refresh and access token");
+    }
+}
+
 export const register = async (req, res) => {
     try {
         const { fullname, email, password, role, phoneNumber } = req.body
@@ -77,7 +94,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        const isPasswordMatch = await user.isPasswordCorrect(password);
         if (!isPasswordMatch) {
             return res.status(400).json({
                 message: "Incorrect email or password",
@@ -93,11 +110,10 @@ export const login = async (req, res) => {
             });
         }
 
-        const tokenData = {
-            userId: user._id,
-        }
+        const { accessToke, refreshToken } = await genrateAccessAndRefreshTokens(user._id)
 
-        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
+        const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
 
         user = {
             _id: user._id,
@@ -111,15 +127,16 @@ export const login = async (req, res) => {
         const options = {
             maxAge: 1 * 24 * 60 * 60 * 1000,
             httpOnly: true,
-            secure: true,
-            sameSite: 'none'
+            secure: process.env.NODE_ENV !== "development",
+            sameSite: process.env.NODE_ENV === "development" ? "lax" : "none"
         }
 
-        return res.status(200).cookie("token", token, options).json({
+        return res.status(200).cookie("token", accessToke, options).cookie("refreshToken", refreshToken, options).json({
             message: `welcome back ${user.fullname}`,
             success: true,
-            user: user,
-            token: token
+            user: loggedInUser,
+            token: accessToke,
+            refreshToken: refreshToken
         });
 
 
