@@ -1,7 +1,4 @@
 import jwt from "jsonwebtoken";
-import cookieParser from 'cookie-parser';
-
-app.use(cookieParser()); // Ensure cookie parser is initialized
 
 const isAuthenticated = (req, res, next) => {
     try {
