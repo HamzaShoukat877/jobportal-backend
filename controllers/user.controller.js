@@ -89,15 +89,16 @@ export const login = async (req, res) => {
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
-                message: "Incorrect email or password",
+                message: "user not found",
                 success: false
             });
         }
 
+
         const isPasswordMatch = await user.isPasswordCorrect(password);
         if (!isPasswordMatch) {
             return res.status(400).json({
-                message: "Incorrect email or password",
+                message: "Incorrect password",
                 success: false
             });
         }
@@ -112,7 +113,7 @@ export const login = async (req, res) => {
 
         const { accessToke, refreshToken } = await genrateAccessAndRefreshTokens(user._id)
 
-        const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
 
 
         user = {
@@ -134,7 +135,7 @@ export const login = async (req, res) => {
         return res.status(200).cookie("token", accessToke, options).cookie("refreshToken", refreshToken, options).json({
             message: `welcome back ${user.fullname}`,
             success: true,
-            user: loggedInUser,
+            user,
             token: accessToke,
             refreshToken: refreshToken
         });
