@@ -4,34 +4,9 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utlils/datauri.js";
 import cloudinary from "../utlils/cloudinary.js";
 
-const genrateAccessAndRefreshTokens = async (userId) => {
-    try {
-        const user = await User.findById(userId)
-        console.log(user.generateAccessToken())
-        const accessToke = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
-
-        // Save refresh token in the database
-        user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
-
-        return { accessToke, refreshToken }
-    } catch (error) {
-        throw new Error("Something went wrong while generating refresh and access token");
-    }
-}
-
 export const register = async (req, res) => {
     try {
         const { fullname, email, password, role, phoneNumber } = req.body
-
-        const file = req.file;
-        let cloudResponse;
-        if (file) {
-            const fileUri = getDataUri(file);
-            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-        }
-
         if ([fullname, email, role, password, phoneNumber].some((field) => field?.trim() === "")) {
             return res.status(400).json({
                 message: "Something is missing",
@@ -55,10 +30,7 @@ export const register = async (req, res) => {
             email,
             password: hashedPassword,
             role,
-            phoneNumber,
-            profile: {
-                proflilePhoto: cloudResponse?.secure_url || ""
-            }
+            phoneNumber
         });
 
         return res.status(200).json({
@@ -89,13 +61,12 @@ export const login = async (req, res) => {
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
-                message: "user not found",
+                message: "Incorrect email",
                 success: false
             });
         }
 
-
-        const isPasswordMatch = await user.isPasswordCorrect(password);
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
                 message: "Incorrect password",
@@ -111,10 +82,11 @@ export const login = async (req, res) => {
             });
         }
 
-        const { accessToke, refreshToken } = await genrateAccessAndRefreshTokens(user._id)
+        const tokenData = {
+            userId: user._id,
+        }
 
-
-
+        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         user = {
             _id: user._id,
@@ -128,16 +100,14 @@ export const login = async (req, res) => {
         const options = {
             maxAge: 1 * 24 * 60 * 60 * 1000,
             httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: process.env.NODE_ENV === "development" ? "lax" : "none"
+            samesite: 'lax'
         }
 
-        return res.status(200).cookie("token", accessToke, options).cookie("refreshToken", refreshToken, options).json({
+        return res.status(200).cookie("token", token, options).json({
             message: `welcome back ${user.fullname}`,
             success: true,
-            user,
-            token: accessToke,
-            refreshToken: refreshToken
+            user: user,
+            token:token
         });
 
 

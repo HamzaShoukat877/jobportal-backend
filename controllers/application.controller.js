@@ -74,8 +74,7 @@ export const getAppliedJobs = async (req, res) => {
         }
 
         return res.status(200).json({
-            applications,
-            success: true
+            applications
         })
     } catch (error) {
         console.log(error);
