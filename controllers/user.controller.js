@@ -86,6 +86,7 @@ export const login = async (req, res) => {
             userId: user._id,
         }
 
+
         const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
 
         user = {
@@ -107,7 +108,7 @@ export const login = async (req, res) => {
             message: `welcome back ${user.fullname}`,
             success: true,
             user: user,
-            token:token
+            token: token
         });
 
 
